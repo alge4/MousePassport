@@ -1,0 +1,74 @@
+using System.IO;
+using System.Text.Json;
+using MousePassport.App.Models;
+
+namespace MousePassport.App.Services;
+
+public sealed class PortConfigService
+{
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true
+    };
+
+    private readonly string _configPath;
+
+    public PortConfigService()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var directory = Path.Combine(appData, "MousePassport");
+        Directory.CreateDirectory(directory);
+        _configPath = Path.Combine(directory, "config.json");
+    }
+
+    public LayoutPortConfig BuildDefault(string layoutId, IEnumerable<SharedEdge> edges)
+    {
+        var config = new LayoutPortConfig
+        {
+            LayoutId = layoutId,
+            EnforcementEnabled = true
+        };
+
+        foreach (var edge in edges)
+        {
+            config.EdgePorts.Add(new EdgePort
+            {
+                EdgeId = edge.Id,
+                PortStart = edge.SegmentStart,
+                PortEnd = edge.SegmentEnd
+            });
+        }
+
+        return config;
+    }
+
+    public LayoutPortConfig? Load(string layoutId)
+    {
+        if (!File.Exists(_configPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(_configPath);
+            var config = JsonSerializer.Deserialize<LayoutPortConfig>(json, JsonOptions);
+            if (config is null || !string.Equals(config.LayoutId, layoutId, StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            return config;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public void Save(LayoutPortConfig config)
+    {
+        var json = JsonSerializer.Serialize(config, JsonOptions);
+        File.WriteAllText(_configPath, json);
+    }
+}
