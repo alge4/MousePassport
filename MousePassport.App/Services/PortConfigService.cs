@@ -13,10 +13,11 @@ public sealed class PortConfigService
 
     private readonly string _configPath;
 
-    public PortConfigService()
+    public PortConfigService(string? configDirectory = null)
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var directory = Path.Combine(appData, "MousePassport");
+        var directory = configDirectory ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "MousePassport");
         Directory.CreateDirectory(directory);
         _configPath = Path.Combine(directory, "config.json");
     }

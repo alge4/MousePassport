@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (e.g. v1.0.0); leave empty to use latest tag"
+        required: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore MousePassport.sln
+
+      - name: Build
+        run: dotnet build MousePassport.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test MousePassport.sln -c Release --no-build --verbosity normal
+
+      - name: Publish
+        run: dotnet publish MousePassport.App\MousePassport.App.csproj -c Release /p:PublishProfile=Release-win-x64 --no-restore
+
+      - name: Zip artifact
+        run: |
+          $version = "${{ github.event.inputs.version || github.ref_name }}".TrimStart('v')
+          $zipName = "MousePassport-$version-win-x64.zip"
+          Compress-Archive -Path "publish\*" -DestinationPath $zipName
+          echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_NAME }}
+          name: ${{ env.VERSION }}
+          generate_release_notes: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
