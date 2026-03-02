@@ -61,9 +61,18 @@ public sealed class MouseHookService : IDisposable
         }
 
         _hookProc = HookCallback;
-        using var process = Process.GetCurrentProcess();
-        using var module = process.MainModule;
-        var moduleHandle = NativeMethods.GetModuleHandle(module?.ModuleName);
+        IntPtr moduleHandle;
+        try
+        {
+            using var process = Process.GetCurrentProcess();
+            using var module = process.MainModule;
+            moduleHandle = NativeMethods.GetModuleHandle(module?.ModuleName);
+        }
+        catch
+        {
+            moduleHandle = NativeMethods.GetModuleHandle(null);
+        }
+
         _hookHandle = NativeMethods.SetWindowsHookEx(NativeMethods.WhMouseLl, _hookProc, moduleHandle, 0);
         if (_hookHandle == IntPtr.Zero)
         {

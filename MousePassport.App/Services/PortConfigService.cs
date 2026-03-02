@@ -60,15 +60,29 @@ public sealed class PortConfigService
 
             return config;
         }
-        catch
+        catch (Exception ex)
         {
+            DiagnosticsLog.Write($"Config load failed: {ex.GetType().Name} - {ex.Message}");
             return null;
         }
     }
 
     public void Save(LayoutPortConfig config)
     {
-        var json = JsonSerializer.Serialize(config, JsonOptions);
-        File.WriteAllText(_configPath, json);
+        var directory = Path.GetDirectoryName(_configPath)!;
+        var tempPath = Path.Combine(directory, Path.GetRandomFileName());
+        try
+        {
+            var json = JsonSerializer.Serialize(config, JsonOptions);
+            File.WriteAllText(tempPath, json);
+            File.Move(tempPath, _configPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                try { File.Delete(tempPath); } catch { /* ignore */ }
+            }
+        }
     }
 }

@@ -22,8 +22,15 @@ public static class DiagnosticsLog
     {
         lock (Sync)
         {
-            var line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {message}";
-            File.AppendAllText(LogPath, line + Environment.NewLine, Encoding.UTF8);
+            try
+            {
+                var line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {message}";
+                File.AppendAllText(LogPath, line + Environment.NewLine, Encoding.UTF8);
+            }
+            catch
+            {
+                // Avoid affecting app behavior when log write fails (e.g. disk full, access denied).
+            }
         }
     }
 }

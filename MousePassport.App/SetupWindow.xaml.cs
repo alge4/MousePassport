@@ -305,7 +305,12 @@ public partial class SetupWindow : Window
 
     private void UpdateEdgeVisual(SharedEdge edge, EdgePort port)
     {
-        var drawable = _drawables.First(x => x.Edge.Id == edge.Id);
+        var drawable = _drawables.FirstOrDefault(x => x.Edge.Id == edge.Id);
+        if (drawable.Edge is null)
+        {
+            return;
+        }
+
         var (x1, y1, x2, y2) = EdgeToCanvas(edge, port.PortStart, port.PortEnd);
 
         drawable.PassZone.X1 = x1;

@@ -31,11 +31,16 @@ public sealed class PanicHotkeyService : IDisposable
             return;
         }
 
-        _isRegistered = NativeMethods.RegisterHotKey(
+        var ok = NativeMethods.RegisterHotKey(
             _source.Handle,
             _hotkeyId,
             NativeMethods.ModControl | NativeMethods.ModAlt,
             NativeMethods.VkPause);
+        _isRegistered = ok;
+        if (!ok)
+        {
+            DiagnosticsLog.Write("Panic hotkey (Ctrl+Alt+Pause) could not be registered; it may be in use by another application.");
+        }
     }
 
     public void Unregister()

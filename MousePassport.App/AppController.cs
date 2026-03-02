@@ -240,13 +240,24 @@ public sealed class AppController : IDisposable
 
     private void SystemEventsOnDisplaySettingsChanged(object? sender, EventArgs e)
     {
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        var app = System.Windows.Application.Current;
+        if (app is null)
+        {
+            return;
+        }
+
+        app.Dispatcher.Invoke(() =>
         {
             var wasEnabled = _config?.EnforcementEnabled ?? true;
             _hookService.IsEnabled = false;
 
             RefreshLayoutAndConfig();
-            _config!.EnforcementEnabled = wasEnabled;
+            if (_config is null)
+            {
+                return;
+            }
+
+            _config.EnforcementEnabled = wasEnabled;
             _configService.Save(_config);
 
             ApplyEnabledState();
