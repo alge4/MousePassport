@@ -26,7 +26,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore
-        run: dotnet restore MousePassport.sln -r win-x64
+        run: dotnet restore MousePassport.sln -r win-x64 /p:PublishReadyToRun=true
 
       - name: Build
         run: dotnet build MousePassport.sln -c Release --no-restore
