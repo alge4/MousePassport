@@ -15,35 +15,6 @@ A **panic hotkey** (Ctrl+Alt+Pause) disables enforcement immediately so the user
 - Windows 10 or later (64-bit recommended for the pre-built release)
 - For building from source: .NET 8.0 SDK (Windows desktop workload). A self-contained release does not require .NET to be installed on the target machine.
 
-## CI and release pipeline (GitHub Actions)
-
-- **CI** (`.github/workflows/ci.yml`): On every push and pull request to `main`/`master`, the workflow builds the solution and runs the unit tests on Windows. This keeps the main branch buildable and regression-free.
-
-- **Release** (`.github/workflows/release.yml`): When you push a version tag (e.g. `v1.0.0`), it runs the same build and tests, then publishes a self-contained win-x64 build, zips it, and creates a GitHub Release with the zip attached. Users can download `MousePassport-1.0.0-win-x64.zip` from the Releases page.
-
-  **To cut a release:** update the version in `MousePassport.App.csproj` if desired, commit, then create and push a tag:
-  ```bash
-  git tag v1.0.0
-  git push origin v1.0.0
-  ```
-  The release is created automatically. You can also run the “Release” workflow manually from the Actions tab (optionally with a version input).
-
-## Creating a release locally
-
-To build a distributable release (self-contained, no .NET install required):
-
-```bash
-dotnet publish MousePassport.App\MousePassport.App.csproj -c Release /p:PublishProfile=Release-win-x64
-```
-
-Output is written to the `publish\` folder at the solution root. Zip that folder and distribute it; users run `MousePassport.App.exe` from inside it.
-
-To publish for 32-bit Windows instead:
-
-```bash
-dotnet publish MousePassport.App\MousePassport.App.csproj -c Release -r win-x86 --self-contained true -o publish
-```
-
 ## Building and running
 
 1. Open `MousePassport.sln` in Visual Studio or build from the command line:
@@ -61,6 +32,37 @@ dotnet publish MousePassport.App\MousePassport.App.csproj -c Release -r win-x86 
    Or run the built executable from `MousePassport.App\bin\Release\net8.0-windows\`.
 
 After starting, the user should see the MousePassport icon in the system tray. Double-click it to open the setup window and adjust pass-through edges for the current monitor layout.
+
+## CI and release pipeline (GitHub Actions)
+
+- **CI** (`.github/workflows/ci.yml`): On every push and pull request to `main`/`master`, the workflow builds the solution and runs the unit tests on Windows. This keeps the main branch buildable and regression-free.
+
+- **Release** (`.github/workflows/release.yml`): When you push a version tag (e.g. `v1.0.0`), it runs the same build and tests, then publishes a self-contained win-x64 build, zips it, and creates a GitHub Release with the zip attached. Users can download `MousePassport-1.0.0-win-x64.zip` from the Releases page.
+
+  **To cut a release:** update the version in `MousePassport.App.csproj` if desired, commit, then create and push a tag:
+
+  ```bash
+  git tag v1.0.0
+  git push origin v1.0.0
+  ```
+
+  The release is created automatically. You can also run the “Release” workflow manually from the Actions tab (optionally with a version input).
+
+## Creating a release locally
+
+To build a distributable release (self-contained, no .NET install required):
+
+```bash
+dotnet publish MousePassport.App\MousePassport.App.csproj -c Release /p:PublishProfile=Release-win-x64
+```
+
+Output is written to the `publish\` folder at the solution root. Zip that folder and distribute it; users run `MousePassport.App.exe` from inside it.
+
+To publish for 32-bit Windows instead:
+
+```bash
+dotnet publish MousePassport.App\MousePassport.App.csproj -c Release -r win-x86 --self-contained true -o publish
+```
 
 ## License
 
