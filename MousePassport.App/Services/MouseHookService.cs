@@ -400,7 +400,7 @@ public sealed class MouseHookService : IDisposable
     private static CrossingCandidate? BuildProjectedCandidate(IntPoint previous, SharedEdge edge)
     {
         var axis = edge.Orientation == EdgeOrientation.Horizontal ? previous.X : previous.Y;
-        if (axis < edge.SegmentStart - Epsilon || axis > edge.SegmentEnd + Epsilon)
+        if (axis < edge.ExtendedSegmentStart - Epsilon || axis > edge.ExtendedSegmentEnd + Epsilon)
         {
             return null;
         }
@@ -431,7 +431,7 @@ public sealed class MouseHookService : IDisposable
             }
 
             var y = y1 + ((y2 - y1) * t);
-            if (y < edge.SegmentStart - Epsilon || y > edge.SegmentEnd + Epsilon)
+            if (y < edge.ExtendedSegmentStart - Epsilon || y > edge.ExtendedSegmentEnd + Epsilon)
             {
                 return null;
             }
@@ -453,7 +453,7 @@ public sealed class MouseHookService : IDisposable
             }
 
             var x = x1 + ((x2 - x1) * t);
-            if (x < edge.SegmentStart - Epsilon || x > edge.SegmentEnd + Epsilon)
+            if (x < edge.ExtendedSegmentStart - Epsilon || x > edge.ExtendedSegmentEnd + Epsilon)
             {
                 return null;
             }

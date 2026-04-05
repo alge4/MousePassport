@@ -265,7 +265,7 @@ public partial class SetupWindow : Window
         if (edge.Orientation == EdgeOrientation.Vertical)
         {
             var value = _transform.ToVirtualY(mouse.Y);
-            var clamped = Clamp(value, edge.SegmentStart, edge.SegmentEnd);
+            var clamped = Clamp(value, edge.ExtendedSegmentStart, edge.ExtendedSegmentEnd);
             if (drag.IsStartHandle)
             {
                 port.PortStart = clamped;
@@ -278,7 +278,7 @@ public partial class SetupWindow : Window
         else
         {
             var value = _transform.ToVirtualX(mouse.X);
-            var clamped = Clamp(value, edge.SegmentStart, edge.SegmentEnd);
+            var clamped = Clamp(value, edge.ExtendedSegmentStart, edge.ExtendedSegmentEnd);
             if (drag.IsStartHandle)
             {
                 port.PortStart = clamped;
@@ -340,8 +340,8 @@ public partial class SetupWindow : Window
     {
         var min = Math.Min(port.PortStart, port.PortEnd);
         var max = Math.Max(port.PortStart, port.PortEnd);
-        port.PortStart = Clamp(min, edge.SegmentStart, edge.SegmentEnd);
-        port.PortEnd = Clamp(max, edge.SegmentStart, edge.SegmentEnd);
+        port.PortStart = Clamp(min, edge.ExtendedSegmentStart, edge.ExtendedSegmentEnd);
+        port.PortEnd = Clamp(max, edge.ExtendedSegmentStart, edge.ExtendedSegmentEnd);
     }
 
     private static int Clamp(int value, int min, int max)

@@ -225,6 +225,10 @@ public sealed class MonitorLayoutService
                 return;
             }
 
+            var taller = a.Bounds.Height >= b.Bounds.Height ? a : b;
+            var extendedTop = taller.Bounds.Top;
+            var extendedBottom = taller.Bounds.Bottom;
+
             var constant = aToB
                 ? (a.Bounds.Right + b.Bounds.Left) / 2
                 : (b.Bounds.Right + a.Bounds.Left) / 2;
@@ -236,7 +240,9 @@ public sealed class MonitorLayoutService
                 Orientation = EdgeOrientation.Vertical,
                 ConstantCoordinate = constant,
                 SegmentStart = overlapTop,
-                SegmentEnd = overlapBottom
+                SegmentEnd = overlapBottom,
+                ExtendedSegmentStart = extendedTop,
+                ExtendedSegmentEnd = extendedBottom
             });
         }
     }
@@ -254,6 +260,10 @@ public sealed class MonitorLayoutService
                 return;
             }
 
+            var wider = a.Bounds.Width >= b.Bounds.Width ? a : b;
+            var extendedLeft = wider.Bounds.Left;
+            var extendedRight = wider.Bounds.Right;
+
             var constant = aToB
                 ? (a.Bounds.Bottom + b.Bounds.Top) / 2
                 : (b.Bounds.Bottom + a.Bounds.Top) / 2;
@@ -265,7 +275,9 @@ public sealed class MonitorLayoutService
                 Orientation = EdgeOrientation.Horizontal,
                 ConstantCoordinate = constant,
                 SegmentStart = overlapLeft,
-                SegmentEnd = overlapRight
+                SegmentEnd = overlapRight,
+                ExtendedSegmentStart = extendedLeft,
+                ExtendedSegmentEnd = extendedRight
             });
         }
     }

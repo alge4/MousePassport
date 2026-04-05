@@ -28,8 +28,15 @@ public sealed class SharedEdge
     public required string MonitorB { get; init; }
     public required EdgeOrientation Orientation { get; init; }
     public int ConstantCoordinate { get; init; }
+    /// <summary>Overlap interval along the segment axis (true contact patch between both monitors).</summary>
     public int SegmentStart { get; init; }
     public int SegmentEnd { get; init; }
+    /// <summary>
+    /// Wider/taller monitor span along the same axis: allows pass-through setup beyond the contact patch
+    /// but still within the larger display.
+    /// </summary>
+    public int ExtendedSegmentStart { get; init; }
+    public int ExtendedSegmentEnd { get; init; }
 }
 
 public sealed class EdgePort
