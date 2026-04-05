@@ -24,6 +24,7 @@ public partial class SetupWindow : Window
     private readonly List<DrawableEdge> _drawables = [];
     private DragState? _dragState;
     private TransformContext _transform;
+    private BoundaryOverlayForm? _desktopOverlay;
 
     public SetupWindow(
         IReadOnlyList<MonitorDescriptor> monitors,
@@ -46,6 +47,7 @@ public partial class SetupWindow : Window
         _viewReady = true;
         Loaded += (_, _) => Redraw();
         SizeChanged += (_, _) => Redraw();
+        Closed += (_, _) => DisposeDesktopOverlay();
     }
 
     private void EnsurePortsForNewEdges()
@@ -92,6 +94,7 @@ public partial class SetupWindow : Window
         }
         UpdateStatus();
         UpdateDebugPanel();
+        RefreshDesktopOverlay();
     }
 
     private TransformContext BuildTransform()
@@ -322,6 +325,7 @@ public partial class SetupWindow : Window
         System.Windows.Controls.Canvas.SetTop(drawable.StartHandle, y1 - HandleRadius);
         System.Windows.Controls.Canvas.SetLeft(drawable.EndHandle, x2 - HandleRadius);
         System.Windows.Controls.Canvas.SetTop(drawable.EndHandle, y2 - HandleRadius);
+        RefreshDesktopOverlay();
     }
 
     private (double x1, double y1, double x2, double y2) EdgeToCanvas(SharedEdge edge, int start, int end)
@@ -385,6 +389,61 @@ public partial class SetupWindow : Window
     private void DebugOverlayCheckBox_OnCheckedChanged(object sender, RoutedEventArgs e)
     {
         Redraw();
+    }
+
+    private void DesktopLivePreviewCheckBox_OnCheckedChanged(object sender, RoutedEventArgs e)
+    {
+        RefreshDesktopOverlay();
+    }
+
+    private IReadOnlyDictionary<string, EdgePort> SnapshotPortsDictionary()
+    {
+        return _ports.ToDictionary(
+            static kv => kv.Key,
+            static kv => new EdgePort
+            {
+                EdgeId = kv.Value.EdgeId,
+                PortStart = kv.Value.PortStart,
+                PortEnd = kv.Value.PortEnd
+            },
+            StringComparer.Ordinal);
+    }
+
+    private void RefreshDesktopOverlay()
+    {
+        if (DesktopLivePreviewCheckBox.IsChecked != true)
+        {
+            DisposeDesktopOverlay();
+            return;
+        }
+
+        if (_edges.Count == 0)
+        {
+            DisposeDesktopOverlay();
+            return;
+        }
+
+        _desktopOverlay ??= new BoundaryOverlayForm();
+        _desktopOverlay.SetGeometry(_edges, SnapshotPortsDictionary());
+        if (!_desktopOverlay.Visible)
+        {
+            _desktopOverlay.Show();
+        }
+    }
+
+    private void DisposeDesktopOverlay()
+    {
+        if (_desktopOverlay is null)
+        {
+            return;
+        }
+
+        if (!_desktopOverlay.IsDisposed)
+        {
+            _desktopOverlay.Dispose();
+        }
+
+        _desktopOverlay = null;
     }
 
     private void UpdateStatus()

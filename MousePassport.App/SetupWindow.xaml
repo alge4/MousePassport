@@ -35,6 +35,13 @@
                           Content="Single boundary handle mode"
                           Checked="DebugOverlayCheckBox_OnCheckedChanged"
                           Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
+                <CheckBox x:Name="DesktopLivePreviewCheckBox"
+                          IsChecked="True"
+                          Margin="0,0,16,0"
+                          Content="Show boundaries on desktop (live)"
+                          ToolTip="Draws pass-through edges on the real monitor seams while you adjust handles. Click-through; you can still use this window."
+                          Checked="DesktopLivePreviewCheckBox_OnCheckedChanged"
+                          Unchecked="DesktopLivePreviewCheckBox_OnCheckedChanged" />
                 <CheckBox x:Name="DebugOverlayCheckBox"
                           IsChecked="True"
                           Margin="0,0,16,0"
