@@ -22,6 +22,9 @@ public sealed class AppController : IDisposable
     private readonly MouseHookService _hookService;
     private readonly ClipCursorService _clipService;
     private readonly DispatcherTimer _clipTimer;
+    private static readonly TimeSpan ActiveEnforcementInterval = TimeSpan.FromMilliseconds(16);
+    private static readonly TimeSpan FullscreenSleepPollInterval = TimeSpan.FromMilliseconds(400);
+    private bool _enforcementAsleepForFullscreen;
     private IReadOnlyList<MonitorDescriptor> _monitors = [];
     private IReadOnlyList<SharedEdge> _edges = [];
     private LayoutPortConfig? _config;
@@ -42,9 +45,9 @@ public sealed class AppController : IDisposable
             () => _edges);
         _clipTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromMilliseconds(16)
+            Interval = ActiveEnforcementInterval
         };
-        _clipTimer.Tick += (_, _) => _clipService.Update();
+        _clipTimer.Tick += (_, _) => OnEnforcementTimerTick();
 
         _enabledItem = new Forms.ToolStripMenuItem("Enabled");
         _enabledItem.Click += (_, _) => ToggleEnabled();
@@ -129,12 +132,47 @@ public sealed class AppController : IDisposable
     {
         var enabled = _config?.EnforcementEnabled ?? true;
         var mode = _config?.EnforcementMode ?? EnforcementMode.ClipCursor;
-        _hookService.IsEnabled = enabled && mode == EnforcementMode.Hook;
+        var hookShouldRun = enabled && mode == EnforcementMode.Hook && !_enforcementAsleepForFullscreen;
+        _hookService.IsEnabled = hookShouldRun;
         _clipService.IsEnabled = enabled && mode == EnforcementMode.ClipCursor;
         if (!_clipService.IsEnabled)
         {
             _clipService.ReleaseClip();
         }
+    }
+
+    private void OnEnforcementTimerTick()
+    {
+        var config = _config;
+        var wantFullscreenSleep = (config?.EnforcementEnabled ?? true) &&
+                                  (config?.SuspendWhenFullscreenForegroundEffective ?? true) &&
+                                  FullscreenForegroundDetector.IsOtherProcessFullscreenForeground();
+
+        if (wantFullscreenSleep)
+        {
+            if (!_enforcementAsleepForFullscreen)
+            {
+                _enforcementAsleepForFullscreen = true;
+                _clipService.ReleaseClip();
+                ApplyEnabledState();
+                _clipTimer.Interval = FullscreenSleepPollInterval;
+                UpdateTrayState();
+                DiagnosticsLog.Write("Enforcement paused (fullscreen foreground).");
+            }
+
+            return;
+        }
+
+        if (_enforcementAsleepForFullscreen)
+        {
+            _enforcementAsleepForFullscreen = false;
+            _clipTimer.Interval = ActiveEnforcementInterval;
+            ApplyEnabledState();
+            UpdateTrayState();
+            DiagnosticsLog.Write("Enforcement resumed after fullscreen.");
+        }
+
+        _clipService.Update();
     }
 
     private void ShowSetupWindow()
@@ -156,6 +194,7 @@ public sealed class AppController : IDisposable
             _edges,
             _config.EdgePorts,
             _config.EnforcementMode,
+            _config.SuspendWhenFullscreenForegroundEffective,
             OnSetupSaved);
         _setupWindow.Closed += (_, _) =>
         {
@@ -167,7 +206,7 @@ public sealed class AppController : IDisposable
         DiagnosticsLog.Write("SetupWindow opened.");
     }
 
-    private void OnSetupSaved(IReadOnlyCollection<EdgePort> ports, EnforcementMode mode)
+    private void OnSetupSaved(IReadOnlyCollection<EdgePort> ports, EnforcementMode mode, bool suspendWhenFullscreenForeground)
     {
         if (_config is null)
         {
@@ -186,10 +225,11 @@ public sealed class AppController : IDisposable
         }
 
         _config.EnforcementMode = mode;
+        _config.SuspendWhenFullscreenForeground = suspendWhenFullscreenForeground;
         _configService.Save(_config);
         ApplyEnabledState();
         UpdateTrayState();
-        DiagnosticsLog.Write($"SetupWindow saved {ports.Count} edge ports. Mode={mode}");
+        DiagnosticsLog.Write($"SetupWindow saved {ports.Count} edge ports. Mode={mode}, SuspendFullscreen={suspendWhenFullscreenForeground}");
     }
 
     private void ExitApplication()
@@ -260,6 +300,12 @@ public sealed class AppController : IDisposable
             _config.EnforcementEnabled = wasEnabled;
             _configService.Save(_config);
 
+            if (_enforcementAsleepForFullscreen)
+            {
+                _enforcementAsleepForFullscreen = false;
+                _clipTimer.Interval = ActiveEnforcementInterval;
+            }
+
             ApplyEnabledState();
             UpdateTrayState();
             ShowBalloon("MousePassport refreshed", "Display layout changed; monitor edges were recalculated.");
@@ -271,8 +317,9 @@ public sealed class AppController : IDisposable
         var enabled = _config?.EnforcementEnabled ?? true;
         var mode = _config?.EnforcementMode ?? EnforcementMode.ClipCursor;
         _enabledItem.Checked = enabled;
+        var pauseNote = _enforcementAsleepForFullscreen ? ", paused: fullscreen" : "";
         _trayIcon.Text = enabled
-            ? $"MousePassport ({mode})"
+            ? $"MousePassport ({mode}{pauseNote})"
             : $"MousePassport (Disabled/{mode})";
     }
 

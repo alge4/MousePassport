@@ -27,7 +27,8 @@ public sealed class PortConfigService
         var config = new LayoutPortConfig
         {
             LayoutId = layoutId,
-            EnforcementEnabled = true
+            EnforcementEnabled = true,
+            SuspendWhenFullscreenForeground = true
         };
 
         foreach (var edge in edges)

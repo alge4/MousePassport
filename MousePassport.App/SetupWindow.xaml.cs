@@ -21,7 +21,7 @@ public partial class SetupWindow : Window
     private readonly IReadOnlyList<MonitorDescriptor> _monitors;
     private readonly IReadOnlyList<SharedEdge> _edges;
     private readonly Dictionary<string, EdgePort> _ports;
-    private readonly Action<IReadOnlyCollection<EdgePort>, EnforcementMode> _onSave;
+    private readonly Action<IReadOnlyCollection<EdgePort>, EnforcementMode, bool> _onSave;
     private bool _viewReady;
 
     private readonly List<DrawableEdge> _drawables = [];
@@ -34,7 +34,8 @@ public partial class SetupWindow : Window
         IReadOnlyList<SharedEdge> edges,
         IEnumerable<EdgePort> currentPorts,
         EnforcementMode currentMode,
-        Action<IReadOnlyCollection<EdgePort>, EnforcementMode> onSave)
+        bool suspendWhenFullscreenForeground,
+        Action<IReadOnlyCollection<EdgePort>, EnforcementMode, bool> onSave)
     {
         _monitors = monitors ?? [];
         _edges = edges ?? [];
@@ -47,6 +48,7 @@ public partial class SetupWindow : Window
         EnsurePortsForNewEdges();
         InitializeComponent();
         LegacyHookModeCheckBox.IsChecked = currentMode == EnforcementMode.Hook;
+        SuspendFullscreenCheckBox.IsChecked = suspendWhenFullscreenForeground;
         _viewReady = true;
         Loaded += (_, _) => Redraw();
         SizeChanged += (_, _) => Redraw();
@@ -494,7 +496,8 @@ public partial class SetupWindow : Window
             PortStart = x.PortStart,
             PortEnd = x.PortEnd
         }).ToList(),
-        LegacyHookModeCheckBox.IsChecked == true ? EnforcementMode.Hook : EnforcementMode.ClipCursor);
+        LegacyHookModeCheckBox.IsChecked == true ? EnforcementMode.Hook : EnforcementMode.ClipCursor,
+        SuspendFullscreenCheckBox.IsChecked == true);
 
         DiagnosticsLog.Write("SetupWindow Save clicked.");
         Close();
