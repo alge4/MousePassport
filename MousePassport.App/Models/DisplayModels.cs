@@ -44,7 +44,16 @@ public sealed class LayoutPortConfig
     public required string LayoutId { get; init; }
     public bool EnforcementEnabled { get; set; } = true;
     public EnforcementMode EnforcementMode { get; set; } = EnforcementMode.ClipCursor;
+
+    /// <summary>
+    /// When null (older configs), treated as true: pause enforcement while another process owns a fullscreen foreground window.
+    /// </summary>
+    public bool? SuspendWhenFullscreenForeground { get; set; }
+
     public List<EdgePort> EdgePorts { get; init; } = [];
+
+    public bool SuspendWhenFullscreenForegroundEffective =>
+        SuspendWhenFullscreenForeground != false;
 }
 
 public readonly record struct IntPoint(int X, int Y);

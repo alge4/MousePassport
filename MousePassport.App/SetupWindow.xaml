@@ -47,6 +47,13 @@
                           ToolTip="Legacy fallback mode. May feel less stable and can flicker more than ClipCursor mode."
                           Checked="DebugOverlayCheckBox_OnCheckedChanged"
                           Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
+                <CheckBox x:Name="SuspendFullscreenCheckBox"
+                          IsChecked="True"
+                          Margin="16,0,0,0"
+                          Content="Pause when another app is fullscreen"
+                          ToolTip="Stops cursor enforcement while a different fullscreen application is in the foreground so mouse capture works normally."
+                          Checked="DebugOverlayCheckBox_OnCheckedChanged"
+                          Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal"
