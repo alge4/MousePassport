@@ -20,7 +20,9 @@ public sealed class PortConfigServiceTests
                 Orientation = EdgeOrientation.Horizontal,
                 ConstantCoordinate = 1080,
                 SegmentStart = 0,
-                SegmentEnd = 1920
+                SegmentEnd = 1920,
+                ExtendedSegmentStart = 0,
+                ExtendedSegmentEnd = 1920
             }
         };
 
@@ -48,7 +50,9 @@ public sealed class PortConfigServiceTests
                 Orientation = EdgeOrientation.Vertical,
                 ConstantCoordinate = 1920,
                 SegmentStart = 100,
-                SegmentEnd = 500
+                SegmentEnd = 500,
+                ExtendedSegmentStart = 100,
+                ExtendedSegmentEnd = 500
             },
             new SharedEdge
             {
@@ -58,7 +62,9 @@ public sealed class PortConfigServiceTests
                 Orientation = EdgeOrientation.Horizontal,
                 ConstantCoordinate = 0,
                 SegmentStart = 0,
-                SegmentEnd = 800
+                SegmentEnd = 800,
+                ExtendedSegmentStart = 0,
+                ExtendedSegmentEnd = 800
             }
         };
 
@@ -90,7 +96,9 @@ public sealed class PortConfigServiceTests
                     Orientation = EdgeOrientation.Horizontal,
                     ConstantCoordinate = 700,
                     SegmentStart = 10,
-                    SegmentEnd = 90
+                    SegmentEnd = 90,
+                    ExtendedSegmentStart = 10,
+                    ExtendedSegmentEnd = 90
                 }
             };
             var original = service.BuildDefault("roundtrip-layout", edges);
