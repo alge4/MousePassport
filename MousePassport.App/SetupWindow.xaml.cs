@@ -13,6 +13,9 @@ public partial class SetupWindow : Window
 {
     private const double CanvasPadding = 24.0;
     private const double HandleRadius = 10.0;
+    private const double TickHalfLength = 7.0;
+    private const double CalloutOffset = 16.0;
+    private const double LeaderGap = 4.0;
     private const int DebugAdjacencyTolerancePx = 16;
 
     private readonly IReadOnlyList<MonitorDescriptor> _monitors;
@@ -78,7 +81,7 @@ public partial class SetupWindow : Window
         if (_monitors.Count == 0)
         {
             StatusText.Text = "No monitors detected.";
-            StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 214, 214));
+            StatusText.Foreground = ThemeBrush("Brush.Text.Danger", System.Windows.Media.Color.FromRgb(196, 49, 42));
             return;
         }
 
@@ -129,13 +132,13 @@ public partial class SetupWindow : Window
             {
                 Width = width,
                 Height = height,
-                Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(235, 235, 235)),
+                Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 241, 250)),
                 Stroke = monitor.IsPrimary
-                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(43, 120, 228))
-                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(64, 64, 64)),
-                StrokeThickness = monitor.IsPrimary ? 3 : 1.5,
-                RadiusX = 5,
-                RadiusY = 5
+                    ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 103, 192))
+                    : new SolidColorBrush(System.Windows.Media.Color.FromRgb(134, 134, 139)),
+                StrokeThickness = monitor.IsPrimary ? 2.5 : 1.25,
+                RadiusX = 8,
+                RadiusY = 8
             };
 
             System.Windows.Controls.Canvas.SetLeft(rect, left);
@@ -146,7 +149,8 @@ public partial class SetupWindow : Window
             {
                 Text = monitor.DeviceName,
                 FontSize = 12,
-                Foreground = System.Windows.Media.Brushes.Black
+                FontFamily = TryFindResource("Font.Ui") as System.Windows.Media.FontFamily ?? new System.Windows.Media.FontFamily("Segoe UI"),
+                Foreground = ThemeBrush("Brush.Text.Primary", System.Windows.Media.Color.FromRgb(26, 26, 28))
             };
 
             System.Windows.Controls.Canvas.SetLeft(label, left + 8);
@@ -159,8 +163,9 @@ public partial class SetupWindow : Window
                 {
                     Text = $"{monitor.Bounds.Left},{monitor.Bounds.Top} -> {monitor.Bounds.Right},{monitor.Bounds.Bottom}",
                     FontSize = 11,
-                    Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(80, 80, 80)),
-                    Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(180, 255, 255, 255))
+                    FontFamily = TryFindResource("Font.Ui") as System.Windows.Media.FontFamily ?? new System.Windows.Media.FontFamily("Segoe UI"),
+                    Foreground = ThemeBrush("Brush.Text.Secondary", System.Windows.Media.Color.FromRgb(92, 92, 99)),
+                    Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(200, 255, 255, 255))
                 };
 
                 System.Windows.Controls.Canvas.SetLeft(boundsText, left + 8);
@@ -185,8 +190,8 @@ public partial class SetupWindow : Window
                 Y1 = y1,
                 X2 = x2,
                 Y2 = y2,
-                Stroke = new SolidColorBrush(System.Windows.Media.Color.FromRgb(220, 72, 72)),
-                StrokeDashArray = [3, 3],
+                Stroke = new SolidColorBrush(System.Windows.Media.Color.FromRgb(209, 52, 56)),
+                StrokeDashArray = [4, 3],
                 StrokeThickness = 2
             };
             LayoutCanvas.Children.Add(baseline);
@@ -194,14 +199,47 @@ public partial class SetupWindow : Window
             var (px1, py1, px2, py2) = EdgeToCanvas(edge, port.PortStart, port.PortEnd);
             var passZone = new Line
             {
-                X1 = px1,
-                Y1 = py1,
-                X2 = px2,
-                Y2 = py2,
-                Stroke = new SolidColorBrush(System.Windows.Media.Color.FromRgb(34, 168, 90)),
-                StrokeThickness = 5
+                Stroke = new SolidColorBrush(System.Windows.Media.Color.FromRgb(16, 124, 16)),
+                StrokeThickness = 5.5,
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round,
+                IsHitTestVisible = false
             };
             LayoutCanvas.Children.Add(passZone);
+
+            var tickBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(16, 124, 16));
+            var startTick = new Line
+            {
+                Stroke = tickBrush,
+                StrokeThickness = 2,
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round
+            };
+            var endTick = new Line
+            {
+                Stroke = tickBrush,
+                StrokeThickness = 2,
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round
+            };
+            startTick.IsHitTestVisible = false;
+            endTick.IsHitTestVisible = false;
+            LayoutCanvas.Children.Add(startTick);
+            LayoutCanvas.Children.Add(endTick);
+
+            var leaderBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(200, 16, 124, 16));
+            var leaderLine = new Line
+            {
+                Stroke = leaderBrush,
+                StrokeThickness = 1.5,
+                StrokeDashArray = [3, 2],
+                IsHitTestVisible = false
+            };
+            LayoutCanvas.Children.Add(leaderLine);
+
+            var callout = CreatePassCallout();
+            callout.IsHitTestVisible = false;
+            LayoutCanvas.Children.Add(callout);
 
             var startHandle = CreateHandle(px1, py1, edge, true);
             var endHandle = CreateHandle(px2, py2, edge, false);
@@ -216,7 +254,104 @@ public partial class SetupWindow : Window
             LayoutCanvas.Children.Add(startHandle);
             LayoutCanvas.Children.Add(endHandle);
 
-            _drawables.Add(new DrawableEdge(edge, passZone, startHandle, endHandle));
+            LayoutPassAnnotations(edge, port, px1, py1, px2, py2, passZone, startTick, endTick, leaderLine, callout);
+
+            _drawables.Add(new DrawableEdge(edge, passZone, startTick, endTick, leaderLine, callout, startHandle, endHandle));
+        }
+    }
+
+    private static Border CreatePassCallout()
+    {
+        var text = new TextBlock
+        {
+            FontSize = 11,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(12, 92, 12))
+        };
+        return new Border
+        {
+            Child = text,
+            Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(230, 232, 245, 233)),
+            BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(200, 16, 124, 16)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(8, 5, 8, 5),
+            SnapsToDevicePixels = true
+        };
+    }
+
+    private void LayoutPassAnnotations(
+        SharedEdge edge,
+        EdgePort port,
+        double px1,
+        double py1,
+        double px2,
+        double py2,
+        Line passZone,
+        Line startTick,
+        Line endTick,
+        Line leaderLine,
+        Border callout)
+    {
+        passZone.X1 = px1;
+        passZone.Y1 = py1;
+        passZone.X2 = px2;
+        passZone.Y2 = py2;
+
+        if (edge.Orientation == EdgeOrientation.Vertical)
+        {
+            startTick.X1 = px1 - TickHalfLength;
+            startTick.Y1 = py1;
+            startTick.X2 = px1 + TickHalfLength;
+            startTick.Y2 = py1;
+            endTick.X1 = px2 - TickHalfLength;
+            endTick.Y1 = py2;
+            endTick.X2 = px2 + TickHalfLength;
+            endTick.Y2 = py2;
+        }
+        else
+        {
+            startTick.X1 = px1;
+            startTick.Y1 = py1 - TickHalfLength;
+            startTick.X2 = px1;
+            startTick.Y2 = py1 + TickHalfLength;
+            endTick.X1 = px2;
+            endTick.Y1 = py2 - TickHalfLength;
+            endTick.X2 = px2;
+            endTick.Y2 = py2 + TickHalfLength;
+        }
+
+        var midX = (px1 + px2) * 0.5;
+        var midY = (py1 + py2) * 0.5;
+        var span = Math.Abs(port.PortEnd - port.PortStart);
+
+        if (callout.Child is TextBlock tb)
+        {
+            tb.Text = $"Pass-through · {span} px";
+            tb.FontFamily = TryFindResource("Font.Ui") as System.Windows.Media.FontFamily ?? new System.Windows.Media.FontFamily("Segoe UI");
+        }
+
+        callout.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+        var cw = callout.DesiredSize.Width;
+        var ch = callout.DesiredSize.Height;
+
+        if (edge.Orientation == EdgeOrientation.Vertical)
+        {
+            Canvas.SetLeft(callout, midX + CalloutOffset);
+            Canvas.SetTop(callout, midY - ch * 0.5);
+            leaderLine.X1 = midX;
+            leaderLine.Y1 = midY;
+            leaderLine.X2 = midX + CalloutOffset - LeaderGap;
+            leaderLine.Y2 = midY;
+        }
+        else
+        {
+            Canvas.SetLeft(callout, midX - cw * 0.5);
+            Canvas.SetTop(callout, midY + CalloutOffset);
+            leaderLine.X1 = midX;
+            leaderLine.Y1 = midY;
+            leaderLine.X2 = midX;
+            leaderLine.Y2 = midY + CalloutOffset - LeaderGap;
         }
     }
 
@@ -226,9 +361,9 @@ public partial class SetupWindow : Window
         {
             Width = HandleRadius * 2,
             Height = HandleRadius * 2,
-            Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(34, 168, 90)),
-            Stroke = System.Windows.Media.Brushes.White,
-            StrokeThickness = 2.5,
+            Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(16, 124, 16)),
+            Stroke = new SolidColorBrush(System.Windows.Media.Color.FromArgb(230, 255, 255, 255)),
+            StrokeThickness = 2,
             Tag = new HandleTag(edge.Id, isStartHandle),
             Cursor = edge.Orientation == EdgeOrientation.Vertical ? System.Windows.Input.Cursors.SizeNS : System.Windows.Input.Cursors.SizeWE
         };
@@ -316,10 +451,7 @@ public partial class SetupWindow : Window
 
         var (x1, y1, x2, y2) = EdgeToCanvas(edge, port.PortStart, port.PortEnd);
 
-        drawable.PassZone.X1 = x1;
-        drawable.PassZone.Y1 = y1;
-        drawable.PassZone.X2 = x2;
-        drawable.PassZone.Y2 = y2;
+        LayoutPassAnnotations(edge, port, x1, y1, x2, y2, drawable.PassZone, drawable.StartTick, drawable.EndTick, drawable.LeaderLine, drawable.Callout);
 
         System.Windows.Controls.Canvas.SetLeft(drawable.StartHandle, x1 - HandleRadius);
         System.Windows.Controls.Canvas.SetTop(drawable.StartHandle, y1 - HandleRadius);
@@ -452,7 +584,7 @@ public partial class SetupWindow : Window
         {
             StatusText.Text =
                 "No shared monitor edges found. In Windows Display Settings, make sure monitors touch each other (no gaps), then reopen this window.";
-            StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 214, 128));
+            StatusText.Foreground = ThemeBrush("Brush.Text.Warning", System.Windows.Media.Color.FromRgb(157, 93, 0));
             return;
         }
 
@@ -463,7 +595,12 @@ public partial class SetupWindow : Window
             ? "Deprecated Hook mode selected."
             : "ClipCursor mode selected.";
         StatusText.Text = $"Detected {_edges.Count} shared edge(s). Green = allowed pass-through, red = blocked edge. {modeText} {enforcementText}";
-        StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(214, 245, 214));
+        StatusText.Foreground = ThemeBrush("Brush.Text.Success", System.Windows.Media.Color.FromRgb(15, 107, 58));
+    }
+
+    private System.Windows.Media.Brush ThemeBrush(string key, System.Windows.Media.Color fallback)
+    {
+        return TryFindResource(key) as System.Windows.Media.Brush ?? new SolidColorBrush(fallback);
     }
 
     private void ApplyBoundaryHandleAnchors()
@@ -594,8 +731,9 @@ public partial class SetupWindow : Window
             {
                 Text = edge.Orientation == EdgeOrientation.Vertical ? $"V @ x={edge.ConstantCoordinate}" : $"H @ y={edge.ConstantCoordinate}",
                 FontSize = 10,
-                Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(180, 255, 245, 220)),
-                Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(90, 70, 20))
+                FontFamily = TryFindResource("Font.Ui") as System.Windows.Media.FontFamily ?? new System.Windows.Media.FontFamily("Segoe UI"),
+                Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(200, 255, 252, 245)),
+                Foreground = ThemeBrush("Brush.Text.Secondary", System.Windows.Media.Color.FromRgb(92, 92, 99))
             };
             System.Windows.Controls.Canvas.SetLeft(tag, labelPoint.X);
             System.Windows.Controls.Canvas.SetTop(tag, labelPoint.Y);
@@ -670,5 +808,13 @@ public partial class SetupWindow : Window
 
     private readonly record struct HandleTag(string EdgeId, bool IsStartHandle);
     private readonly record struct DragState(string EdgeId, bool IsStartHandle);
-    private readonly record struct DrawableEdge(SharedEdge Edge, Line PassZone, Ellipse StartHandle, Ellipse EndHandle);
+    private readonly record struct DrawableEdge(
+        SharedEdge Edge,
+        Line PassZone,
+        Line StartTick,
+        Line EndTick,
+        Line LeaderLine,
+        Border Callout,
+        Ellipse StartHandle,
+        Ellipse EndHandle);
 }

@@ -6,115 +6,156 @@
         Height="700"
         MinWidth="760"
         MinHeight="520"
-        WindowStartupLocation="CenterScreen">
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top"
-                    Background="#FF121212"
-                    Orientation="Vertical">
-            <TextBlock Foreground="White"
-                       FontSize="14"
-                       Margin="16,12,16,6"
-                       TextWrapping="Wrap"
-                       Text="Monitor positions come from Windows Display Settings (read-only here). Drag circular handles on highlighted shared edges to set pass-through regions." />
-            <TextBlock x:Name="StatusText"
-                       Foreground="#FFD6F5D6"
-                       FontSize="12"
-                       Margin="16,0,16,12"
-                       TextWrapping="Wrap"
-                       Text="Detecting monitor edges..." />
-        </StackPanel>
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Brush.Window.Background}"
+        FontFamily="{StaticResource Font.Ui}"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
+    <DockPanel Margin="20,18,20,18">
+        <!-- Hero / intro glass panel -->
+        <Border DockPanel.Dock="Top"
+                Margin="0,0,0,14"
+                CornerRadius="14"
+                BorderBrush="{StaticResource Brush.Border.Glass}"
+                BorderThickness="1"
+                Background="{StaticResource Brush.Glass.Card}"
+                Effect="{StaticResource Effect.Card.Shadow}">
+            <Border CornerRadius="14" Padding="20,16,20,16">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Style="{StaticResource Text.Headline}"
+                               Text="Configure pass-through edges" />
+                    <TextBlock Margin="0,6,0,0"
+                               Style="{StaticResource Text.Body}"
+                               Text="Monitor positions come from Windows Display Settings (read-only). Drag the handles on shared edges to choose where the cursor may cross between displays." />
+                    <TextBlock x:Name="StatusText"
+                               Margin="0,12,0,0"
+                               Style="{StaticResource Text.Body}"
+                               Foreground="{StaticResource Brush.Text.Success}"
+                               Text="Detecting monitor edges..." />
+                </StackPanel>
+            </Border>
+        </Border>
 
-        <DockPanel DockPanel.Dock="Bottom"
-                   Margin="12">
-            <StackPanel DockPanel.Dock="Left"
-                        Orientation="Horizontal"
-                        VerticalAlignment="Center">
-                <CheckBox x:Name="BoundaryHandleModeCheckBox"
-                          IsChecked="True"
-                          Margin="0,0,16,0"
-                          Content="Single boundary handle mode"
-                          Checked="DebugOverlayCheckBox_OnCheckedChanged"
-                          Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
-                <CheckBox x:Name="DesktopLivePreviewCheckBox"
-                          IsChecked="True"
-                          Margin="0,0,16,0"
-                          Content="Show boundaries on desktop (live)"
-                          ToolTip="Draws pass-through edges on the real monitor seams while you adjust handles. Click-through; you can still use this window."
-                          Checked="DesktopLivePreviewCheckBox_OnCheckedChanged"
-                          Unchecked="DesktopLivePreviewCheckBox_OnCheckedChanged" />
-                <CheckBox x:Name="DebugOverlayCheckBox"
-                          IsChecked="True"
-                          Margin="0,0,16,0"
-                          Content="Debug overlay"
-                          Checked="DebugOverlayCheckBox_OnCheckedChanged"
-                          Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
-                <CheckBox x:Name="LegacyHookModeCheckBox"
-                          IsChecked="False"
-                          Content="Use deprecated Hook mode"
-                          ToolTip="Legacy fallback mode. May feel less stable and can flicker more than ClipCursor mode."
-                          Checked="DebugOverlayCheckBox_OnCheckedChanged"
-                          Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
-            </StackPanel>
+        <!-- Bottom toolbar -->
+        <Border DockPanel.Dock="Bottom"
+                Margin="0,14,0,0"
+                CornerRadius="12"
+                BorderBrush="{StaticResource Brush.Border.Glass}"
+                BorderThickness="1"
+                Background="{StaticResource Brush.Glass.Toolbar}">
+            <DockPanel Margin="14,12,14,12">
+                <StackPanel DockPanel.Dock="Left"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <CheckBox x:Name="BoundaryHandleModeCheckBox"
+                              Style="{StaticResource Glass.CheckBox}"
+                              IsChecked="True"
+                              Content="Single boundary handle"
+                              Checked="DebugOverlayCheckBox_OnCheckedChanged"
+                              Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
+                    <CheckBox x:Name="DesktopLivePreviewCheckBox"
+                              Style="{StaticResource Glass.CheckBox}"
+                              IsChecked="True"
+                              Content="Live desktop preview"
+                              ToolTip="Shows pass-through on real monitor seams while you drag. Click-through overlay."
+                              Checked="DesktopLivePreviewCheckBox_OnCheckedChanged"
+                              Unchecked="DesktopLivePreviewCheckBox_OnCheckedChanged" />
+                    <CheckBox x:Name="DebugOverlayCheckBox"
+                              Style="{StaticResource Glass.CheckBox}"
+                              IsChecked="True"
+                              Content="Debug overlay"
+                              Checked="DebugOverlayCheckBox_OnCheckedChanged"
+                              Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
+                    <CheckBox x:Name="LegacyHookModeCheckBox"
+                              Style="{StaticResource Glass.CheckBox}"
+                              Margin="0,0,0,0"
+                              IsChecked="False"
+                              Content="Deprecated Hook mode"
+                              ToolTip="Legacy fallback. ClipCursor is recommended."
+                              Checked="DebugOverlayCheckBox_OnCheckedChanged"
+                              Unchecked="DebugOverlayCheckBox_OnCheckedChanged" />
+                </StackPanel>
 
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        DockPanel.Dock="Right">
-            <Button x:Name="ResetButton"
-                    Width="130"
-                    Margin="0,0,8,0"
-                    Padding="8,4"
-                    Content="Reset Full Edges"
-                    Click="ResetButton_OnClick" />
-            <Button x:Name="CancelButton"
-                    Width="100"
-                    Margin="0,0,8,0"
-                    Padding="8,4"
-                    Content="Cancel"
-                    Click="CancelButton_OnClick" />
-            <Button x:Name="SaveButton"
-                    Width="100"
-                    Padding="8,4"
-                    IsDefault="True"
-                    Content="Save"
-                    Click="SaveButton_OnClick" />
-            </StackPanel>
-        </DockPanel>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            DockPanel.Dock="Right">
+                    <Button x:Name="ResetButton"
+                            Style="{StaticResource Glass.Button.Secondary}"
+                            Width="132"
+                            Margin="0,0,8,0"
+                            Content="Reset full edges"
+                            Click="ResetButton_OnClick" />
+                    <Button x:Name="CancelButton"
+                            Style="{StaticResource Glass.Button.Secondary}"
+                            Width="100"
+                            Margin="0,0,8,0"
+                            Content="Cancel"
+                            Click="CancelButton_OnClick" />
+                    <Button x:Name="SaveButton"
+                            Style="{StaticResource Glass.Button.Primary}"
+                            Width="100"
+                            IsDefault="True"
+                            Content="Save"
+                            Click="SaveButton_OnClick" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
-        <Grid Margin="12">
+        <!-- Main content -->
+        <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="300" />
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    BorderBrush="#FF303030"
+                    Margin="0,0,10,0"
+                    CornerRadius="14"
+                    BorderBrush="{StaticResource Brush.Border.Glass}"
                     BorderThickness="1"
-                    CornerRadius="8"
-                    Background="#FFF7F7F7"
-                    Margin="0,0,8,0">
-                <Canvas x:Name="LayoutCanvas"
-                        Background="Transparent" />
+                    Background="{StaticResource Brush.Glass.Card}"
+                    Effect="{StaticResource Effect.Card.Shadow}">
+                <Border CornerRadius="14"
+                        Background="{StaticResource Brush.Canvas.Back}"
+                        Margin="1"
+                        ClipToBounds="True">
+                    <Border CornerRadius="13" ClipToBounds="True">
+                        <Canvas x:Name="LayoutCanvas"
+                                Background="Transparent" />
+                    </Border>
+                </Border>
             </Border>
 
             <Border Grid.Column="1"
-                    BorderBrush="#FF303030"
+                    CornerRadius="14"
+                    BorderBrush="{StaticResource Brush.Border.Glass}"
                     BorderThickness="1"
-                    CornerRadius="8"
-                    Background="#FFFBFBFB">
+                    Background="{StaticResource Brush.Glass.Card}"
+                    Effect="{StaticResource Effect.Card.Shadow}">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top"
-                               Margin="10,10,10,6"
-                               FontWeight="SemiBold"
-                               Text="Layout Diagnostics" />
-                    <TextBox x:Name="DebugText"
-                             Margin="10,0,10,10"
-                             FontFamily="Consolas"
-                             FontSize="12"
-                             IsReadOnly="True"
-                             AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto"
-                             TextWrapping="NoWrap" />
+                               Style="{StaticResource Text.SectionTitle}"
+                               Margin="16,14,16,8"
+                               Text="Layout diagnostics" />
+                    <Border Margin="12,0,12,12"
+                            CornerRadius="10"
+                            BorderBrush="{StaticResource Brush.Border.Hairline}"
+                            BorderThickness="1"
+                            Background="#59FFFFFF"
+                            ClipToBounds="True">
+                        <TextBox x:Name="DebugText"
+                                 Margin="10,8"
+                                 FontFamily="{StaticResource Font.Mono}"
+                                 FontSize="12"
+                                 Foreground="{StaticResource Brush.Text.Primary}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 TextWrapping="NoWrap" />
+                    </Border>
                 </DockPanel>
             </Border>
         </Grid>
