@@ -10,9 +10,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
     <!-- Release / version metadata -->
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <Product>MousePassport</Product>
     <Description>Prevents the cursor from being pulled onto an unwanted secondary display by controlling where it can cross between monitors.</Description>
     <Authors>MousePassport</Authors>
