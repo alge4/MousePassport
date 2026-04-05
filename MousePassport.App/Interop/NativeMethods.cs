@@ -18,9 +18,28 @@ internal static class NativeMethods
     internal const int EnumCurrentSettings = -1;
     internal const uint DisplayDeviceAttachedToDesktop = 0x00000001;
     internal const uint DisplayDevicePrimaryDevice = 0x00000004;
+    internal const uint MonitorDefaultToNearest = 2;
 
     internal delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
     internal delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    internal static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    internal static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+    [DllImport("user32.dll")]
+    internal static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+    [DllImport("user32.dll")]
+    internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    [DllImport("user32.dll")]
+    internal static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    internal static extern bool IsIconic(IntPtr hWnd);
 
     [DllImport("user32.dll")]
     internal static extern bool EnumDisplayMonitors(
